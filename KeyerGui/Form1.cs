@@ -28,6 +28,7 @@ namespace KeyerGui
 
             _imageOriginal = new Bitmap(dialog.FileName);
             boxOriginal.Image = _imageOriginal;
+            MessageBox.Show("Изображение загружено");
         }
 
         private void makeGreatImage_Click(object sender, EventArgs e)
@@ -44,6 +45,7 @@ namespace KeyerGui
 
             _imageOutput = ToOutputBitmap(pixelArr, _imageOriginal.Width, _imageOriginal.Height);
             boxEdited.Image = _imageOutput;
+            MessageBox.Show("Изображение обработано");
         }
 
         private void RemoveKeyColor(byte[] pixelArray, Color key, int size, double threshold)
@@ -128,6 +130,7 @@ namespace KeyerGui
                 return;
 
             _imageOutput.Save(dialog.FileName);
+            MessageBox.Show("Изображение сохранено");
         }
 
         private void colorPicker_Click(object sender, EventArgs e)
@@ -136,6 +139,17 @@ namespace KeyerGui
 
             if (colorDialog1.ShowDialog() == DialogResult.OK)
                 _selectedColor = colorViewer.BackColor = colorDialog1.Color;
+        }
+
+        private void boxOriginal_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (_imageOriginal is null)
+                return;
+
+            var b = (Bitmap)boxOriginal.Image;
+            var x = e.X * b.Width / boxOriginal.ClientSize.Width;
+            var y = e.Y * b.Height / boxOriginal.ClientSize.Height;
+            _selectedColor = colorViewer.BackColor = b.GetPixel(x, y);
         }
     }
 }

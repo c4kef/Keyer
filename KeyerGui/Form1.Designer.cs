@@ -63,6 +63,9 @@
             this.boxOriginal.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.boxOriginal.TabIndex = 2;
             this.boxOriginal.TabStop = false;
+            this.toolTip1.SetToolTip(this.boxOriginal, "Кликните в любое место по этому изображению чтобы указать какой цвет будет обраба" +
+        "тываться");
+            this.boxOriginal.MouseClick += new System.Windows.Forms.MouseEventHandler(this.boxOriginal_MouseClick);
             // 
             // label1
             // 
@@ -140,7 +143,7 @@
             // thresholdBar
             // 
             this.thresholdBar.Location = new System.Drawing.Point(547, 214);
-            this.thresholdBar.Maximum = 200;
+            this.thresholdBar.Maximum = 160;
             this.thresholdBar.Minimum = 10;
             this.thresholdBar.Name = "thresholdBar";
             this.thresholdBar.Size = new System.Drawing.Size(193, 45);
