@@ -51,7 +51,7 @@
             this.boxEdited.Location = new System.Drawing.Point(795, 48);
             this.boxEdited.Name = "boxEdited";
             this.boxEdited.Size = new System.Drawing.Size(497, 461);
-            this.boxEdited.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.boxEdited.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.boxEdited.TabIndex = 1;
             this.boxEdited.TabStop = false;
             // 
@@ -60,12 +60,12 @@
             this.boxOriginal.Location = new System.Drawing.Point(12, 48);
             this.boxOriginal.Name = "boxOriginal";
             this.boxOriginal.Size = new System.Drawing.Size(497, 461);
-            this.boxOriginal.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.boxOriginal.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.boxOriginal.TabIndex = 2;
             this.boxOriginal.TabStop = false;
             this.toolTip1.SetToolTip(this.boxOriginal, "Кликните в любое место по этому изображению чтобы указать какой цвет будет обраба" +
         "тываться");
-            this.boxOriginal.MouseClick += new System.Windows.Forms.MouseEventHandler(this.boxOriginal_MouseClick);
+            this.boxOriginal.MouseClick += new System.Windows.Forms.MouseEventHandler(this.BoxOriginal_MouseClick);
             // 
             // label1
             // 
@@ -96,7 +96,7 @@
             this.btnOpenFile.TabIndex = 5;
             this.btnOpenFile.Text = "Загрузить";
             this.btnOpenFile.UseVisualStyleBackColor = true;
-            this.btnOpenFile.Click += new System.EventHandler(this.btnOpenFile_Click);
+            this.btnOpenFile.Click += new System.EventHandler(this.BtnOpenFile_Click);
             // 
             // makeGreatImage
             // 
@@ -107,7 +107,7 @@
             this.makeGreatImage.TabIndex = 6;
             this.makeGreatImage.Text = "Обработать";
             this.makeGreatImage.UseVisualStyleBackColor = true;
-            this.makeGreatImage.Click += new System.EventHandler(this.makeGreatImage_Click);
+            this.makeGreatImage.Click += new System.EventHandler(this.MakeGreatImage_Click);
             // 
             // btnSaveOutput
             // 
@@ -118,7 +118,7 @@
             this.btnSaveOutput.TabIndex = 7;
             this.btnSaveOutput.Text = "Сохранить";
             this.btnSaveOutput.UseVisualStyleBackColor = true;
-            this.btnSaveOutput.Click += new System.EventHandler(this.btnSaveOutput_Click);
+            this.btnSaveOutput.Click += new System.EventHandler(this.BtnSaveOutput_Click);
             // 
             // colorViewer
             // 
@@ -138,7 +138,7 @@
             this.colorPicker.Text = "💉";
             this.toolTip1.SetToolTip(this.colorPicker, "Выбрать цвет для обработки");
             this.colorPicker.UseVisualStyleBackColor = false;
-            this.colorPicker.Click += new System.EventHandler(this.colorPicker_Click);
+            this.colorPicker.Click += new System.EventHandler(this.ColorPicker_Click);
             // 
             // thresholdBar
             // 

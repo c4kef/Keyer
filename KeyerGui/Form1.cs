@@ -1,121 +1,109 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace KeyerGui
 {
     public partial class Form1 : Form
     {
-        private Bitmap _imageOriginal;
-        private Bitmap _imageOutput;
+        private KImage _image;
         private Color _selectedColor;
+        private bool _isBusy;
 
-        public Form1()
-        {
-            InitializeComponent();
-        }
+        public Form1() => InitializeComponent();
 
-        private void btnOpenFile_Click(object sender, EventArgs e)
+        private void BtnOpenFile_Click(object sender, EventArgs e)
         {
+            if (_isBusy)
+            {
+                MessageBox.Show("Обработчик занят");
+                return;
+            }
+
             var dialog = new OpenFileDialog
             {
-                Filter = "Изображения|*.jpg;*.jpeg;*.png;*.gif;*.tif;..."
+                Filter = "Изображения|*.png;*.jpg;*.jpeg;"
             };
 
             if (dialog.ShowDialog() == DialogResult.Cancel)
                 return;
 
-            _imageOriginal = new Bitmap(dialog.FileName);
-            boxOriginal.Image = _imageOriginal;
-            MessageBox.Show("Изображение загружено");
+            try
+            {
+                boxOriginal.Image?.Dispose();
+                boxOriginal.Image = null;
+
+                boxEdited.Image?.Dispose();
+                boxEdited.Image = null;
+
+                _image?.Dispose();
+
+                _image = new KImage(dialog.FileName);
+                boxOriginal.Image = _image.ImageOriginal;
+
+                MessageBox.Show("Изображение загружено");
+            }
+            catch(Exception ex) 
+            {
+                _image?.Dispose();
+
+                Console.Error.WriteLine(ex.Message);
+                MessageBox.Show($"Произошла ошибка: {ex.Message}");
+            }
         }
 
-        private void makeGreatImage_Click(object sender, EventArgs e)
+        private void MakeGreatImage_Click(object sender, EventArgs e)
         {
-            if (_imageOriginal is null)
+            if (_isBusy)
+            {
+                MessageBox.Show("Обработчик занят");
+                return;
+            }
+
+            if (_image is null || _image.ImageOriginal is null)
             {
                 MessageBox.Show("Укажите изображение для обработки");
                 return;
             }
 
-            var pixelArr = ToPixelArray(_imageOriginal);
+            _isBusy = true;
 
-            RemoveKeyColor(pixelArr, _selectedColor, pixelArr.Length, thresholdBar.Value);
+            var thresholdValue = thresholdBar.Value;
 
-            _imageOutput = ToOutputBitmap(pixelArr, _imageOriginal.Width, _imageOriginal.Height);
-            boxEdited.Image = _imageOutput;
-            MessageBox.Show("Изображение обработано");
-        }
-
-        private void RemoveKeyColor(byte[] pixelArray, Color key, int size, double threshold)
-        {
-            var thresh = threshold * threshold;
-
-            int sourceRed = key.R, sourceGreen = key.G, sourceBlue = key.B;
-
-            for (var i = 0; i < size; i += 4)
+            Task.Run(() =>
             {
-                var r = ((pixelArray[i + 1]) & 255) - sourceRed;
-                var g = ((pixelArray[i + 2]) & 255) - sourceGreen;
-                var b = ((pixelArray[i + 3]) & 255) - sourceBlue;
-
-                if ((r * r) + (g * g) + (b * b) > thresh)
-                    continue;
-
-                pixelArray[i] = 0;
-                pixelArray[i + 1] = 0;
-                pixelArray[i + 2] = 0;
-                pixelArray[i + 3] = 0;
-            }
-        }
-
-        private Bitmap ToOutputBitmap(byte[] pixelArray, int width, int height)
-        {
-            var outputBitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-
-            var pixelIndex = 0;
-            for (var i = 0; i < height; i++)
-            {
-                for (var j = 0; j < width; j++)
+                try
                 {
-                    var pixelColor = Color.FromArgb(pixelArray[pixelIndex], pixelArray[pixelIndex + 1], pixelArray[pixelIndex + 2], pixelArray[pixelIndex + 3]);
-                    outputBitmap.SetPixel(j, i, pixelColor);//Знаю, долго. Но я честно говоря не знаю как ускорить его
-                    pixelIndex += 4;
+                    _image.RemoveKeyColor(_selectedColor, thresholdValue);
+
+                    if (_image.ImageOutput is null)
+                        throw new Exception("Изображение не обработано");
+
+                    this.Invoke(new Action(() => boxEdited.Image = _image.ImageOutput));
+
+                    MessageBox.Show("Изображение обработано");
                 }
-            }
-
-            return outputBitmap;
-        }
-
-        private byte[] ToPixelArray(Bitmap inputBitmap)
-        {
-            var width = inputBitmap.Width;
-            var height = inputBitmap.Height;
-            var arraySize = width * height * 4;
-
-            var pixelArray = new byte[arraySize];
-
-            var pixelIndex = 0;
-            for (var i = 0; i < height; i++)
-            {
-                for (var j = 0; j < width; j++)
+                catch (Exception ex)
                 {
-                    pixelArray[pixelIndex] = inputBitmap.GetPixel(j, i).A;
-                    pixelArray[pixelIndex + 1] = inputBitmap.GetPixel(j, i).R;
-                    pixelArray[pixelIndex + 2] = inputBitmap.GetPixel(j, i).G;
-                    pixelArray[pixelIndex + 3] = inputBitmap.GetPixel(j, i).B;
-
-                    pixelIndex += 4;
+                    Console.Error.WriteLine(ex.Message);
+                    MessageBox.Show($"Произошла ошибка: {ex.Message}");
                 }
-            }
 
-            return pixelArray;
+                _isBusy = false;
+            });
         }
 
-        private void btnSaveOutput_Click(object sender, EventArgs e)
+        private void BtnSaveOutput_Click(object sender, EventArgs e)
         {
-            if (_imageOutput is null)
+            if (_isBusy)
+            {
+                MessageBox.Show("Обработчик занят");
+                return;
+            }
+
+            if (_image is null || _image.ImageOutput is null)
             {
                 MessageBox.Show("Сделайте обработку изображения");
                 return;
@@ -123,27 +111,39 @@ namespace KeyerGui
 
             var dialog = new SaveFileDialog
             {
-                Filter = "Изображения|*.jpg;*.jpeg;*.png;*.gif;*.tif;..."
+                Filter = "Изображения|*.png"
             };
 
             if (dialog.ShowDialog() == DialogResult.Cancel)
                 return;
 
-            _imageOutput.Save(dialog.FileName);
+            _image.ImageOutput.Save(dialog.FileName, ImageFormat.Png);
             MessageBox.Show("Изображение сохранено");
         }
 
-        private void colorPicker_Click(object sender, EventArgs e)
+        private void ColorPicker_Click(object sender, EventArgs e)
         {
+            if (_isBusy)
+            {
+                MessageBox.Show("Обработчик занят");
+                return;
+            }
+
             colorDialog1.Color = Color.FromArgb(0, 205, 24);
 
             if (colorDialog1.ShowDialog() == DialogResult.OK)
                 _selectedColor = colorViewer.BackColor = colorDialog1.Color;
         }
 
-        private void boxOriginal_MouseClick(object sender, MouseEventArgs e)
+        private void BoxOriginal_MouseClick(object sender, MouseEventArgs e)
         {
-            if (_imageOriginal is null)
+            if (_isBusy)
+            {
+                MessageBox.Show("Обработчик занят");
+                return;
+            }
+
+            if (_image is null)
                 return;
 
             var b = (Bitmap)boxOriginal.Image;
